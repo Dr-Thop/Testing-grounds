@@ -3,24 +3,22 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Trainer Card Viewer (stable)</title>
+<title>Trainer Card Viewer (Cleaned)</title>
 <style>
-  body {font-family: system-ui, Arial, sans-serif; background:#f5f6fa; color:#222;
-        padding:2em; text-align:center;}
+  body {font-family: system-ui, Arial, sans-serif; background:#f5f6fa; color:#222; padding:2em; text-align:center;}
   #search-section {margin-bottom:1.2em;}
   input, button {padding:0.5em 0.8em; border-radius:6px; border:1px solid #ccc; font-size:1em;}
   button {background:#8e17de; color:#fff; cursor:pointer; border:none;}
   button:hover {background:#7310b9;}
   #card-container {margin:2em auto; min-height:60px;}
-  .infobox {box-shadow:0 4px 10px rgba(0,0,0,0.08); border-radius:12px;
-            overflow:hidden; display:inline-block;}
+  .infobox {box-shadow:0 4px 10px rgba(0,0,0,0.08); border-radius:12px; overflow:hidden; display:inline-block;}
 </style>
 </head>
 <body>
 <h2>Pokémon GC Trainer Card Viewer</h2>
 
 <div id="search-section">
-  <input id="username-input" type="text" placeholder="Enter username (e.g. Hairoll)">
+  <input id="username-input" type="text" placeholder="Enter username">
   <button id="search-btn">Search</button>
 </div>
 
@@ -33,22 +31,35 @@ function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function removeLastUpdated(html) {
+  return html.replace(/<b>\s*Last\s+updated:\s*<\/b>.*?<br\s*\/?>/i, "");
+}
+
+function removeUsernameStrong(html, username) {
+  // Only remove text inside <strong class="searchValue">...</strong>
+  const re = new RegExp('(<strong[^>]*class=["\']searchValue["\'][^>]*>)\\s*' + escapeRegExp(username) + '\\s*(</strong>)', 'i');
+  return html.replace(re, '$1$2');
+}
+
 async function loadTrainerCard(username) {
   const container = document.getElementById("card-container");
   container.innerHTML = "Loading…";
+
+  if (!username) {
+    container.textContent = "Please enter a username.";
+    return;
+  }
 
   try {
     const res = await fetch(RAW_URL);
     const html = await res.text();
 
-    // split into chunks; each card is a span that starts with <span class="infobox">
+    // Split into independent trainer cards
     const parts = html.split(/(?=<span\s+class=["']infobox["'])/i);
 
+    // Find the card for the searched username
     const card = parts.find(part => {
-      const re = new RegExp(
-        `<strong[^>]*class=["']searchValue["'][^>]*>\\s*${escapeRegExp(username)}\\s*<\\/strong>`,
-        "i"
-      );
+      const re = new RegExp('<strong[^>]*class=["\']searchValue["\'][^>]*>\\s*' + escapeRegExp(username) + '\\s*</strong>', 'i');
       return re.test(part);
     });
 
@@ -57,10 +68,15 @@ async function loadTrainerCard(username) {
       return;
     }
 
-    // Fix // URLs so they render on htmlpreview
-    let fixed = card
-      .replace(/src=["']\/\//gi, 'src="https://')
-      .replace(/url\(["']\/\//gi, 'url("https://');
+    // Fix // URLs for sprites
+    let fixed = card.replace(/src=["']\/\//gi, 'src="https://')
+                    .replace(/url\(["']\/\//gi, 'url("https://');
+
+    // Remove Last updated
+    fixed = removeLastUpdated(fixed);
+
+    // Remove username inside <strong>
+    fixed = removeUsernameStrong(fixed, username);
 
     container.innerHTML = fixed;
   } catch (err) {
