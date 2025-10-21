@@ -115,7 +115,7 @@ async function loadTrainerCard(usernameInput) {
 
     container.innerHTML = fixed;
 
-    const fullHtml = PREFIX + fixed + SUFFIX;
+    const fullHtml = PREFIX + fixed.trim() + SUFFIX;
     outputArea.value = fullHtml;
     copyBox.style.display = "block";
 
