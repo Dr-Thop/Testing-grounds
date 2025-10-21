@@ -3,29 +3,46 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Trainer Card Viewer (Cleaned)</title>
+<title>Trainer Card Viewer (Final)</title>
 <style>
-  body {font-family: system-ui, Arial, sans-serif; background:#f5f6fa; color:#222; padding:2em; text-align:center;}
+  body {font-family: system-ui, Arial, sans-serif; background:#f5f6fa; color:#222;
+        padding:2em; text-align:center;}
   #search-section {margin-bottom:1.2em;}
   input, button {padding:0.5em 0.8em; border-radius:6px; border:1px solid #ccc; font-size:1em;}
   button {background:#8e17de; color:#fff; cursor:pointer; border:none;}
   button:hover {background:#7310b9;}
   #card-container {margin:2em auto; min-height:60px;}
-  .infobox {box-shadow:0 4px 10px rgba(0,0,0,0.08); border-radius:12px; overflow:hidden; display:inline-block;}
+  #copy-box {margin-top:2em;}
+  textarea {width:90%; max-width:600px; height:180px; border-radius:8px; padding:8px; font-family:monospace;}
+  .infobox {box-shadow:0 4px 10px rgba(0,0,0,0.08); border-radius:12px;
+            overflow:hidden; display:inline-block;}
 </style>
 </head>
 <body>
 <h2>Pokémon GC Trainer Card Viewer</h2>
 
 <div id="search-section">
-  <input id="username-input" type="text" placeholder="Enter username">
+  <input id="username-input" type="text" placeholder="Enter username (e.g. Hairoll)">
   <button id="search-btn">Search</button>
 </div>
 
 <div id="card-container">Enter a username and click Search.</div>
+<div id="copy-box" style="display:none;">
+  <h3>Cleaned HTML:</h3>
+  <textarea id="html-output" readonly></textarea><br>
+  <button id="copy-btn">Copy HTML</button>
+</div>
 
 <script>
 const RAW_URL = "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card";
+
+// Prefix and suffix for the output HTML
+const PREFIX = `!htmlbox <span style="display: inline-block;height: 30px;width: 40px;image-rendering: pixelated;background:transparent url(https://play.pokemonshowdown.com/sprites/pokemonicons-sheet.png?v16) no-repeat scroll -320px -420px;"></span><b>Mini Togetic's Trainer Cards</b><br>Guess an offline Game Corner user based on their <a href="https://tinyurl.com/gc-museum">trainer card</a>!<hr><center>`;
+const SUFFIX = `</center>`;
+
+function cleanUsername(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
 
 function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -36,49 +53,63 @@ function removeLastUpdated(html) {
 }
 
 function removeUsernameStrong(html, username) {
-  // Only remove text inside <strong class="searchValue">...</strong>
   const re = new RegExp('(<strong[^>]*class=["\']searchValue["\'][^>]*>)\\s*' + escapeRegExp(username) + '\\s*(</strong>)', 'i');
   return html.replace(re, '$1$2');
 }
 
-async function loadTrainerCard(username) {
+async function loadTrainerCard(usernameInput) {
   const container = document.getElementById("card-container");
-  container.innerHTML = "Loading…";
+  const copyBox = document.getElementById("copy-box");
+  const outputArea = document.getElementById("html-output");
 
-  if (!username) {
+  container.innerHTML = "Loading…";
+  copyBox.style.display = "none";
+
+  if (!usernameInput) {
     container.textContent = "Please enter a username.";
     return;
   }
 
+  const cleanInput = cleanUsername(usernameInput);
+
   try {
     const res = await fetch(RAW_URL);
     const html = await res.text();
-
-    // Split into independent trainer cards
     const parts = html.split(/(?=<span\s+class=["']infobox["'])/i);
 
-    // Find the card for the searched username
-    const card = parts.find(part => {
-      const re = new RegExp('<strong[^>]*class=["\']searchValue["\'][^>]*>\\s*' + escapeRegExp(username) + '\\s*</strong>', 'i');
-      return re.test(part);
-    });
+    let foundCard = null, matchedName = null;
 
-    if (!card) {
-      container.textContent = `No trainer card found for "${username}".`;
+    for (const part of parts) {
+      const match = part.match(/<strong[^>]*class=["']searchValue["'][^>]*>(.*?)<\/strong>/i);
+      if (match) {
+        const nameText = match[1].trim();
+        if (cleanUsername(nameText) === cleanInput) {
+          foundCard = part;
+          matchedName = nameText;
+          break;
+        }
+      }
+    }
+
+    if (!foundCard) {
+      container.textContent = `No trainer card found for "${usernameInput}".`;
       return;
     }
 
-    // Fix // URLs for sprites
-    let fixed = card.replace(/src=["']\/\//gi, 'src="https://')
-                    .replace(/url\(["']\/\//gi, 'url("https://');
+    let fixed = foundCard
+      .replace(/src=["']\/\//gi, 'src="https://')
+      .replace(/url\(["']\/\//gi, 'url("https://');
 
-    // Remove Last updated
     fixed = removeLastUpdated(fixed);
-
-    // Remove username inside <strong>
-    fixed = removeUsernameStrong(fixed, username);
+    fixed = removeUsernameStrong(fixed, matchedName);
 
     container.innerHTML = fixed;
+
+    // Show cleaned HTML box
+    const fullHtml = PREFIX + fixed + SUFFIX;
+    outputArea.value = fullHtml;
+    copyBox.style.display = "block";
+
   } catch (err) {
     container.textContent = "Error: " + err.message;
   }
@@ -95,6 +126,13 @@ document.getElementById("username-input").addEventListener("keydown", e => {
     e.preventDefault();
     document.getElementById("search-btn").click();
   }
+});
+
+document.getElementById("copy-btn").addEventListener("click", () => {
+  const textarea = document.getElementById("html-output");
+  textarea.select();
+  document.execCommand("copy");
+  alert("HTML copied to clipboard!");
 });
 </script>
 </body>
