@@ -3,95 +3,66 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Trainer Card Viewer (Raw Mode)</title>
+<title>Trainer Card Viewer (stable)</title>
 <style>
-  body {
-    font-family: system-ui, Arial, sans-serif;
-    background: #f5f6fa;
-    color: #222;
-    padding: 2em;
-    text-align: center;
-  }
-  #search-section { margin-bottom: 1.2em; }
-  input, button {
-    padding: 0.5em 0.8em;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 1em;
-  }
-  button {
-    background: #8e17de;
-    color: white;
-    cursor: pointer;
-    border: none;
-  }
-  button:hover { background: #7310b9; }
-  #card-container { margin: 2em auto; min-height: 60px; }
-  .infobox {
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    border-radius: 12px;
-    overflow: hidden;
-    display: inline-block;
-  }
+  body {font-family: system-ui, Arial, sans-serif; background:#f5f6fa; color:#222;
+        padding:2em; text-align:center;}
+  #search-section {margin-bottom:1.2em;}
+  input, button {padding:0.5em 0.8em; border-radius:6px; border:1px solid #ccc; font-size:1em;}
+  button {background:#8e17de; color:#fff; cursor:pointer; border:none;}
+  button:hover {background:#7310b9;}
+  #card-container {margin:2em auto; min-height:60px;}
+  .infobox {box-shadow:0 4px 10px rgba(0,0,0,0.08); border-radius:12px;
+            overflow:hidden; display:inline-block;}
 </style>
 </head>
 <body>
-  <h2>Pokémon GC Trainer Card Viewer (Raw)</h2>
+<h2>Pokémon GC Trainer Card Viewer</h2>
 
-  <div id="search-section">
-    <input id="username-input" type="text" placeholder="Enter username (e.g. Hairoll)" />
-    <button id="search-btn">Search</button>
-  </div>
+<div id="search-section">
+  <input id="username-input" type="text" placeholder="Enter username (e.g. Hairoll)">
+  <button id="search-btn">Search</button>
+</div>
 
-  <div id="card-container">Enter a username and click Search.</div>
+<div id="card-container">Enter a username and click Search.</div>
 
 <script>
-const GITHUB_RAW_URL =
-  "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card";
+const RAW_URL = "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card";
 
-async function fetchRawFile() {
-  const res = await fetch(GITHUB_RAW_URL);
-  if (!res.ok) throw new Error("Failed to fetch trainer-card file: " + res.status);
-  return await res.text();
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function escapeRegExp(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-async function searchUser(username) {
+async function loadTrainerCard(username) {
   const container = document.getElementById("card-container");
-  container.innerHTML = "Loading...";
-
-  if (!username) {
-    container.textContent = "Please enter a username.";
-    return;
-  }
+  container.innerHTML = "Loading…";
 
   try {
-    const html = await fetchRawFile();
+    const res = await fetch(RAW_URL);
+    const html = await res.text();
 
-    // Match exactly the span for this user
-    const pattern = new RegExp(
-      `<span class="infobox"[\\s\\S]*?<strong class="searchValue"[^>]*>${escapeRegExp(
-        username
-      )}<\\/strong>[\\s\\S]*?<\\/span>`,
-      "i"
-    );
+    // split into chunks; each card is a span that starts with <span class="infobox">
+    const parts = html.split(/(?=<span\s+class=["']infobox["'])/i);
 
-    const match = html.match(pattern);
-    if (!match) {
+    const card = parts.find(part => {
+      const re = new RegExp(
+        `<strong[^>]*class=["']searchValue["'][^>]*>\\s*${escapeRegExp(username)}\\s*<\\/strong>`,
+        "i"
+      );
+      return re.test(part);
+    });
+
+    if (!card) {
       container.textContent = `No trainer card found for "${username}".`;
       return;
     }
 
-    let card = match[0];
+    // Fix // URLs so they render on htmlpreview
+    let fixed = card
+      .replace(/src=["']\/\//gi, 'src="https://')
+      .replace(/url\(["']\/\//gi, 'url("https://');
 
-    // Optional: fix protocol-relative URLs (so they load on GitHub/htmlpreview)
-    card = card.replace(/src=["']\/\//gi, 'src="https://');
-    card = card.replace(/url\(["']\/\//gi, 'url("https://');
-
-    container.innerHTML = card;
+    container.innerHTML = fixed;
   } catch (err) {
     container.textContent = "Error: " + err.message;
   }
@@ -99,8 +70,10 @@ async function searchUser(username) {
 
 document.getElementById("search-btn").addEventListener("click", () => {
   const username = document.getElementById("username-input").value.trim();
-  searchUser(username);
+  if (!username) return;
+  loadTrainerCard(username);
 });
+
 document.getElementById("username-input").addEventListener("keydown", e => {
   if (e.key === "Enter") {
     e.preventDefault();
