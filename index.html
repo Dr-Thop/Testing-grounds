@@ -6,33 +6,49 @@
 <title>Trainer Card Viewer</title>
 <style>
   body {
-    font-family: Arial, sans-serif;
-    background: #f7f7fa;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    font-family: system-ui, Arial, sans-serif;
+    background: #f5f6fa;
+    color: #333;
     padding: 2em;
+    text-align: center;
   }
   #card-container {
-    margin-top: 1em;
+    margin: 2em auto;
   }
   .infobox {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border-radius: 12px;
     overflow: hidden;
+  }
+  pre {
+    text-align: left;
+    background: #1e1e1e;
+    color: #dcdcdc;
+    padding: 1em;
+    border-radius: 8px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .note {
+    font-size: 0.9em;
+    color: #666;
   }
 </style>
 </head>
 <body>
 <h2>Pokémon GC Trainer Card Viewer</h2>
-<p>Use <code>?user=USERNAME</code> in the URL to view a trainer card.</p>
+<p>Use <code>?user=USERNAME</code> in the URL — for example, <code>?user=Hairoll</code></p>
 <div id="card-container">Loading...</div>
+<div class="note">(Below is the cleaned HTML you can copy)</div>
+<pre id="html-output"></pre>
 
 <script>
 async function loadTrainerCard() {
   const params = new URLSearchParams(window.location.search);
-  const username = params.get('user');
-  const container = document.getElementById('card-container');
+  const username = params.get("user");
+  const container = document.getElementById("card-container");
+  const output = document.getElementById("html-output");
 
   if (!username) {
     container.textContent = "Please provide a ?user=USERNAME parameter.";
@@ -45,7 +61,7 @@ async function loadTrainerCard() {
     const res = await fetch(url);
     const html = await res.text();
 
-    // Match <span class="infobox"> ... username ... </span>
+    // Match a <span class="infobox"> ... </span> that contains the username
     const regex = new RegExp(
       `<span class="infobox"[\\s\\S]*?<strong class="searchValue"[^>]*>${username}<\\/strong>[\\s\\S]*?<\\/span>`,
       "i"
@@ -53,20 +69,27 @@ async function loadTrainerCard() {
 
     const match = html.match(regex);
     if (!match) {
-      container.textContent = `No card found for ${username}.`;
+      container.textContent = `No trainer card found for "${username}".`;
       return;
     }
 
     let card = match[0];
 
-    // Remove "Last updated: ..." line
-    card = card.replace(/<b>Last updated:<\\/b>.*?<br>/i, "");
+    // Fix protocol-relative URLs (make them https)
+    card = card.replace(/src="\/\//g, 'src="https://');
+    card = card.replace(/url\("\/\/([^"]+)"/g, 'url("https://$1"');
 
-    // Remove the username text inside <strong>
+    // Remove "Last updated" line
+    card = card.replace(/<b>Last updated:<\/b>.*?<br>/i, "");
+
+    // Remove username text
     card = card.replace(new RegExp(username, "gi"), "");
 
-    // Display
+    // Display card visually
     container.innerHTML = card;
+
+    // Display cleaned HTML as text
+    output.textContent = card;
   } catch (err) {
     container.textContent = "Error fetching card: " + err.message;
   }
