@@ -3,21 +3,40 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Trainer Card Viewer — Fixed</title>
+<title>Trainer Card Viewer (Raw Mode)</title>
 <style>
-  body { font-family: system-ui, Arial, sans-serif; background:#f5f6fa; color:#222; padding:2em; text-align:center }
-  #search-section { margin-bottom:1.2em }
-  input, button { padding:0.5em 0.8em; border-radius:6px; border:1px solid #ccc; font-size:1em }
-  button { background:#8e17de; color:#fff; cursor:pointer; border:none }
-  button:hover { background:#7310b9 }
-  #card-container { margin:2em auto; min-height:60px }
-  .infobox { box-shadow:0 4px 10px rgba(0,0,0,0.08); border-radius:12px; overflow:hidden; display:inline-block }
-  pre { text-align:left; background:#111; color:#e6e6e6; padding:1em; border-radius:8px; overflow:auto; white-space:pre-wrap; word-break:break-word; max-width:900px; margin:1em auto }
-  .note { font-size:0.9em; color:#666 }
+  body {
+    font-family: system-ui, Arial, sans-serif;
+    background: #f5f6fa;
+    color: #222;
+    padding: 2em;
+    text-align: center;
+  }
+  #search-section { margin-bottom: 1.2em; }
+  input, button {
+    padding: 0.5em 0.8em;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+  }
+  button {
+    background: #8e17de;
+    color: white;
+    cursor: pointer;
+    border: none;
+  }
+  button:hover { background: #7310b9; }
+  #card-container { margin: 2em auto; min-height: 60px; }
+  .infobox {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    display: inline-block;
+  }
 </style>
 </head>
 <body>
-  <h2>Pokémon GC Trainer Card Viewer</h2>
+  <h2>Pokémon GC Trainer Card Viewer (Raw)</h2>
 
   <div id="search-section">
     <input id="username-input" type="text" placeholder="Enter username (e.g. Hairoll)" />
@@ -25,11 +44,10 @@
   </div>
 
   <div id="card-container">Enter a username and click Search.</div>
-  <div class="note">(Below is the cleaned HTML you can copy)</div>
-  <pre id="html-output"></pre>
 
 <script>
-const GITHUB_RAW_URL = "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card";
+const GITHUB_RAW_URL =
+  "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card";
 
 async function fetchRawFile() {
   const res = await fetch(GITHUB_RAW_URL);
@@ -37,43 +55,13 @@ async function fetchRawFile() {
   return await res.text();
 }
 
-function findInfoboxBlocks(html) {
-  // Find all <span class="infobox" ...> ... </span> blocks (non-greedy)
-  // Using global, case-insensitive
-  const re = /<span\s+class=["']infobox["'][\s\S]*?<\/span>/gi;
-  return html.match(re) || [];
-}
-
-function fixProtocolRelativeUrls(block) {
-  // Fix src="//..." and url("//...") occurrences to "https://..."
-  block = block.replace(/src=["']\/\/([^"']+)["']/gi, 'src="https://$1"');
-  block = block.replace(/url\(["']\/\/([^"')]+)["']\)/gi, 'url("https://$1")');
-  // also handle src= without quotes
-  block = block.replace(/src=\/\/([^>\s]+)/gi, 'src="https://$1"');
-  return block;
-}
-
-function removeLastUpdated(block) {
-  // Remove the <b>Last updated:</b> ... <br> (case-insensitive)
-  return block.replace(/<b>\s*Last\s+updated:\s*<\/b>.*?<br\s*\/?>/i, "");
-}
-
-function removeUsernameInStrong(block, username) {
-  // Remove only the username text inside the <strong class="searchValue">...</strong>
-  // Keep the <strong> element itself (empty)
-  const re = new RegExp('(<strong[^>]*class=["\\\']searchValue["\\\'][^>]*>)\\s*' + escapeRegExp(username) + '\\s*(<\\/strong>)', 'i');
-  return block.replace(re, '$1$2');
-}
-
-function escapeRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 async function searchUser(username) {
   const container = document.getElementById("card-container");
-  const output = document.getElementById("html-output");
   container.innerHTML = "Loading...";
-  output.textContent = "";
 
   if (!username) {
     container.textContent = "Please enter a username.";
@@ -81,31 +69,29 @@ async function searchUser(username) {
   }
 
   try {
-    const raw = await fetchRawFile();
-    const blocks = findInfoboxBlocks(raw);
+    const html = await fetchRawFile();
 
-    // Find the block that specifically contains the username inside the searchValue strong tag
-    const usernamePattern = new RegExp('<strong[^>]*class=["\\\']searchValue["\\\'][^>]*>\\s*' + escapeRegExp(username) + '\\s*<\\/strong>', 'i');
-    const match = blocks.find(b => usernamePattern.test(b));
+    // Match exactly the span for this user
+    const pattern = new RegExp(
+      `<span class="infobox"[\\s\\S]*?<strong class="searchValue"[^>]*>${escapeRegExp(
+        username
+      )}<\\/strong>[\\s\\S]*?<\\/span>`,
+      "i"
+    );
+
+    const match = html.match(pattern);
     if (!match) {
       container.textContent = `No trainer card found for "${username}".`;
       return;
     }
 
-    let card = match;
+    let card = match[0];
 
-    // Fix protocol-relative URLs so sprites render
-    card = fixProtocolRelativeUrls(card);
+    // Optional: fix protocol-relative URLs (so they load on GitHub/htmlpreview)
+    card = card.replace(/src=["']\/\//gi, 'src="https://');
+    card = card.replace(/url\(["']\/\//gi, 'url("https://');
 
-    // Remove Last updated
-    card = removeLastUpdated(card);
-
-    // Remove username only in the strong tag (safer)
-    card = removeUsernameInStrong(card, username);
-
-    // Show visually and show cleaned HTML for copying
     container.innerHTML = card;
-    output.textContent = card;
   } catch (err) {
     container.textContent = "Error: " + err.message;
   }
@@ -115,9 +101,7 @@ document.getElementById("search-btn").addEventListener("click", () => {
   const username = document.getElementById("username-input").value.trim();
   searchUser(username);
 });
-
-// allow pressing Enter to search
-document.getElementById("username-input").addEventListener("keydown", (e) => {
+document.getElementById("username-input").addEventListener("keydown", e => {
   if (e.key === "Enter") {
     e.preventDefault();
     document.getElementById("search-btn").click();
