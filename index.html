@@ -22,13 +22,13 @@
 <h2>Pokémon GC Trainer Card Viewer</h2>
 
 <div id="search-section">
-  <input id="username-input" type="text" placeholder="Enter username (e.g. Hairoll)">
+  <input id="username-input" type="text" placeholder="Enter username">
   <button id="search-btn">Search</button>
 </div>
 
 <div id="card-container">Enter a username and click Search.</div>
 <div id="copy-box" style="display:none;">
-  <h3>Cleaned HTML:</h3>
+  <h3>Copy and send!:</h3>
   <textarea id="html-output" readonly></textarea><br>
   <button id="copy-btn">Copy HTML</button>
 </div>
@@ -40,21 +40,30 @@ const RAW_URL = "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/he
 const PREFIX = `!htmlbox <span style="display: inline-block;height: 30px;width: 40px;image-rendering: pixelated;background:transparent url(https://play.pokemonshowdown.com/sprites/pokemonicons-sheet.png?v16) no-repeat scroll -320px -420px;"></span><b>Mini Togetic's Trainer Cards</b><br>Guess an offline Game Corner user based on their <a href="https://tinyurl.com/gc-museum">trainer card</a>!<hr><center>`;
 const SUFFIX = `</center>`;
 
+// Remove non-alphanumeric characters and lowercase
 function cleanUsername(str) {
   return str.toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
+// Escape regex special characters
 function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+// Remove "Last updated" line
 function removeLastUpdated(html) {
   return html.replace(/<b>\s*Last\s+updated:\s*<\/b>.*?<br\s*\/?>/i, "");
 }
 
+// Remove username in <strong class="searchValue">
 function removeUsernameStrong(html, username) {
   const re = new RegExp('(<strong[^>]*class=["\']searchValue["\'][^>]*>)\\s*' + escapeRegExp(username) + '\\s*(</strong>)', 'i');
   return html.replace(re, '$1$2');
+}
+
+// Remove quotes from width/height attributes
+function removeQuotesFromDimensions(html) {
+  return html.replace(/(width|height)=["']([^"']+)["']/gi, '$1=$2');
 }
 
 async function loadTrainerCard(usernameInput) {
@@ -102,10 +111,10 @@ async function loadTrainerCard(usernameInput) {
 
     fixed = removeLastUpdated(fixed);
     fixed = removeUsernameStrong(fixed, matchedName);
+    fixed = removeQuotesFromDimensions(fixed);
 
     container.innerHTML = fixed;
 
-    // Show cleaned HTML box
     const fullHtml = PREFIX + fixed + SUFFIX;
     outputArea.value = fullHtml;
     copyBox.style.display = "block";
