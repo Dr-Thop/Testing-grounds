@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trainer Card Viewer</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; text-align: center; padding: 2em; }
+    input { padding: 0.5em; width: 200px; }
+    button { padding: 0.5em 1em; margin-left: 0.5em; cursor: pointer; }
+    #output { margin-top: 2em; }
+  </style>
+</head>
+<body>
+  <h1>Trainer Card Viewer</h1>
+  <input type="text" id="username" placeholder="Enter username" />
+  <button onclick="getTrainerCard()">Show Card</button>
+
+  <div id="output"></div>
+
+  <script>
+    async function getTrainerCard() {
+      const username = document.getElementById("username").value.trim();
+      const output = document.getElementById("output");
+      output.innerHTML = "Loading...";
+
+      try {
+        const url = "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card";
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Failed to fetch trainer cards.");
+        const html = await res.text();
+
+        // Find the trainer card for the given username
+        const regex = new RegExp(
+          `<span class="infobox"[^>]*>.*?<strong[^>]*>${username}</strong>[\\s\\S]*?<\\/span>`,
+          "i"
+        );
+        const match = html.match(regex);
+        if (!match) {
+          output.innerHTML = "No card found for that username.";
+          return;
+        }
+
+        let card = match[0];
+
+        // Remove username and "Last updated" text
+        card = card.replace(new RegExp(username, "gi"), "");
+        card = card.replace(/<b>Last updated:<\/b>.*?(<br>|<\/center>)/i, "");
+
+        output.innerHTML = card;
+      } catch (err) {
+        output.innerHTML = "Error: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
