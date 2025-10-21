@@ -44,9 +44,24 @@
 <pre id="html-output"></pre>
 
 <script>
+function getUsernameParam() {
+  // Try normal query string first
+  let params = new URLSearchParams(window.location.search);
+  let user = params.get("user");
+  if (user) return user;
+
+  // Fallback for htmlpreview.github.io style URLs
+  const href = window.location.href;
+  const secondQuery = href.split(".html?")[1];
+  if (secondQuery) {
+    const secondParams = new URLSearchParams(secondQuery);
+    return secondParams.get("user");
+  }
+  return null;
+}
+
 async function loadTrainerCard() {
-  const params = new URLSearchParams(window.location.search);
-  const username = params.get("user");
+  const username = getUsernameParam();
   const container = document.getElementById("card-container");
   const output = document.getElementById("html-output");
 
@@ -61,7 +76,6 @@ async function loadTrainerCard() {
     const res = await fetch(url);
     const html = await res.text();
 
-    // Match a <span class="infobox"> ... </span> that contains the username
     const regex = new RegExp(
       `<span class="infobox"[\\s\\S]*?<strong class="searchValue"[^>]*>${username}<\\/strong>[\\s\\S]*?<\\/span>`,
       "i"
@@ -85,10 +99,7 @@ async function loadTrainerCard() {
     // Remove username text
     card = card.replace(new RegExp(username, "gi"), "");
 
-    // Display card visually
     container.innerHTML = card;
-
-    // Display cleaned HTML as text
     output.textContent = card;
   } catch (err) {
     container.textContent = "Error fetching card: " + err.message;
