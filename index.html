@@ -1,57 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trainer Card Viewer</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; text-align: center; padding: 2em; }
-    input { padding: 0.5em; width: 200px; }
-    button { padding: 0.5em 1em; margin-left: 0.5em; cursor: pointer; }
-    #output { margin-top: 2em; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trainer Card Viewer</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f7f7fa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2em;
+  }
+  #card-container {
+    margin-top: 1em;
+  }
+  .infobox {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+</style>
 </head>
 <body>
-  <h1>Trainer Card Viewer</h1>
-  <input type="text" id="username" placeholder="Enter username" />
-  <button onclick="getTrainerCard()">Show Card</button>
+<h2>Pokémon GC Trainer Card Viewer</h2>
+<p>Use <code>?user=USERNAME</code> in the URL to view a trainer card.</p>
+<div id="card-container">Loading...</div>
 
-  <div id="output"></div>
+<script>
+async function loadTrainerCard() {
+  const params = new URLSearchParams(window.location.search);
+  const username = params.get('user');
+  const container = document.getElementById('card-container');
 
-  <script>
-    async function getTrainerCard() {
-      const username = document.getElementById("username").value.trim();
-      const output = document.getElementById("output");
-      output.innerHTML = "Loading...";
+  if (!username) {
+    container.textContent = "Please provide a ?user=USERNAME parameter.";
+    return;
+  }
 
-      try {
-        const url = "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card";
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Failed to fetch trainer cards.");
-        const html = await res.text();
+  const url = "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card";
 
-        // Find the trainer card for the given username
-        const regex = new RegExp(
-          `<span class="infobox"[^>]*>.*?<strong[^>]*>${username}</strong>[\\s\\S]*?<\\/span>`,
-          "i"
-        );
-        const match = html.match(regex);
-        if (!match) {
-          output.innerHTML = "No card found for that username.";
-          return;
-        }
+  try {
+    const res = await fetch(url);
+    const html = await res.text();
 
-        let card = match[0];
+    // Match <span class="infobox"> ... username ... </span>
+    const regex = new RegExp(
+      `<span class="infobox"[\\s\\S]*?<strong class="searchValue"[^>]*>${username}<\\/strong>[\\s\\S]*?<\\/span>`,
+      "i"
+    );
 
-        // Remove username and "Last updated" text
-        card = card.replace(new RegExp(username, "gi"), "");
-        card = card.replace(/<b>Last updated:<\/b>.*?(<br>|<\/center>)/i, "");
-
-        output.innerHTML = card;
-      } catch (err) {
-        output.innerHTML = "Error: " + err.message;
-      }
+    const match = html.match(regex);
+    if (!match) {
+      container.textContent = `No card found for ${username}.`;
+      return;
     }
-  </script>
+
+    let card = match[0];
+
+    // Remove "Last updated: ..." line
+    card = card.replace(/<b>Last updated:<\\/b>.*?<br>/i, "");
+
+    // Remove the username text inside <strong>
+    card = card.replace(new RegExp(username, "gi"), "");
+
+    // Display
+    container.innerHTML = card;
+  } catch (err) {
+    container.textContent = "Error fetching card: " + err.message;
+  }
+}
+
+loadTrainerCard();
+</script>
 </body>
 </html>
