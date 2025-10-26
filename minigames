@@ -6,27 +6,28 @@
 <link rel="icon" href="https://www.serebii.net/itemdex/sprites/starsweet.png" type="image/x-icon">
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const copyBtn = document.getElementById('copy-btn');
-  const htmlOutput = document.getElementById('html-output');
-  const copyFeedbackPopup = document.getElementById('copy-feedback-popup');
+    const copyableItems = document.querySelectorAll('.copyable-item');
+    const copyFeedbackPopup = document.getElementById('copy-feedback-popup');
 
-  copyBtn.addEventListener('click', async () => {
-    const textToCopy = htmlOutput.value;
+    copyableItems.forEach(item => {
+        item.addEventListener('click', async () => {
+            const textToCopy = item.getAttribute('data-copy-text');
 
-    try {
-      await navigator.clipboard.writeText(textToCopy);
-      showPopup();
-    } catch (err) {
-      console.error('Failed to copy text:', err);
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                showPopup();
+            } catch (err) {
+                console.error('Failed to copy text: ', err);                
+            }
+        });
+    });
+
+    function showPopup() {
+        copyFeedbackPopup.classList.add('show');
+        setTimeout(() => {
+            copyFeedbackPopup.classList.remove('show');
+        }, 2000); // Popup disappears after 2 seconds
     }
-  });
-
-  function showPopup() {
-    copyFeedbackPopup.classList.add('show');
-    setTimeout(() => {
-      copyFeedbackPopup.classList.remove('show');
-    }, 2000);
-  }
 });
 
 function calculateSettingAsThemeString({ localStorageTheme, systemSettingDark }) {
@@ -637,7 +638,7 @@ button {
 <td id="card-container" style="vertical-align: middle; width:30%">Enter a username and click Search.</td>
 <td id="copy-box" style="display:none; vertical-align: middle; width:30%;">
   <textarea id="html-output" readonly style="resize: none;"></textarea><br>
-  <button id="copy-btn">Click to Copy</button>
+  <button id="copy-btn" class="copyable-item">Click to Copy</button>
 </td>
 
 <script>
