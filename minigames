@@ -638,16 +638,27 @@ button {
 <br><br>Guess an offline Game Corner user based on their <a style="text-decoration:none; color: silver" href="https://tinyurl.com/gc-museum">trainer card</a>!<br><br><span style="float: right"><b>Last updated:</b> 2025-10-26</span><br></summary><p>
 
 <table>
-<tr><td id="search-section" style="vertical-align: middle; width:30%">
-  <input id="username-input" type="text" placeholder="Enter username">
-  <button id="search-btn">Search</button>
-</td>
+  <tr>
+    <td id="search-section" style="vertical-align: middle; width:50%;">
+      <input id="username-input" type="text" placeholder="Enter username">
+      <button id="search-btn">Search</button>
+      <div id="card-container" style="vertical-align: middle;">Enter a username and click Search.</div>
+    </td>
 
-<td id="card-container" style="vertical-align: middle; width:30%">Enter a username and click Search.</td>
-<td id="copy-box" style="display:none; vertical-align: middle; width:30%;">
-  <textarea id="html-output" readonly style="resize: none;"></textarea><br>
-  <button id="copy-btn">Click to Copy</button>
-</td>
+    <td id="copy-box" style="display:none; vertical-align: middle; width:50%;">
+      <textarea id="html-output" readonly
+        style="
+          width: 250px;
+          height: 100px;
+          resize: none;
+          overflow: auto;
+          font-family: monospace;
+          white-space: pre-wrap;
+        "></textarea><br>
+      <button id="copy-btn">Click to Copy</button>
+    </td>
+  </tr>
+</table>
 
 <script>
 const RAW_URL = "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card";
