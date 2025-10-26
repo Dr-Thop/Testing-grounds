@@ -636,9 +636,9 @@ button {
 </td>
 
 <td id="card-container" style="vertical-align: middle; width:30%">Enter a username and click Search.</td>
-<td id="copy-box" style="display:none; vertical-align: middle; width:30%; resize: none;">
-  <textarea id="html-output" readonly></textarea><br>
-  <button id="copy-btn">Click to Copy</button>
+<td id="copy-box" style="display:none; vertical-align: middle; width:30%;">
+  <textarea id="html-output" readonly style="resize: none;"></textarea><br>
+  <button id="copy-btn" class="copyable-item">Click to Copy</button>
 </td>
 
 <script>
