@@ -630,13 +630,13 @@ button {
 <br><br>Guess an offline Game Corner user based on their <a style="text-decoration:none; color: silver" href="https://tinyurl.com/gc-museum">trainer card</a>!<br><br><span style="float: right"><b>Last updated:</b> 2025-10-26</span><br></summary><p>
 
 <table>
-<tr><td id="search-section" style="vertical-align: middle;">
+<tr><td id="search-section" style="vertical-align: middle; width:30%">
   <input id="username-input" type="text" placeholder="Enter username">
   <button id="search-btn">Search</button>
 </td>
 
-<td id="card-container" style="vertical-align: middle;">Enter a username and click Search.</td>
-<td id="copy-box" style="display:none; vertical-align: middle">
+<td id="card-container" style="vertical-align: middle; width:30%">Enter a username and click Search.</td>
+<td id="copy-box" style="display:none; vertical-align: middle; width:30%">
   <h3>Copy and send:</h3>
   <textarea id="html-output" readonly></textarea><br>
   <button id="copy-btn">Copy HTML</button>
