@@ -125,7 +125,7 @@ textarea {
   transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 div {
-  overflow: scroll;
+  overflow: auto;
 }
 body {
   font-family: "Quicksand", sans-serif;
@@ -626,150 +626,22 @@ button {
 
 
 
+<div class="searchValue" style="display: inline-block ; border: 1px solid #68a ; border-radius: 5px ; padding: 25px ; width: 95%"><details><summary><span style="display: inline-block;height: 30px;width: 40px;image-rendering: pixelated;background:transparent url(https://play.pokemonshowdown.com/sprites/pokemonicons-sheet.png?v16) no-repeat scroll -320px -420px"></span><strong class="searchValue">Togetic's Trainer Cards</strong>
+<br><br>Guess an offline Game Corner user based on their <a style="text-decoration:none; color: silver" href="https://tinyurl.com/gc-museum">trainer card</a>!<br><br><span style="float: right"><b>Last updated:</b> 2025-10-21</span><br></summary><p>
+<div style="display: inline-block ; border: 1px solid #68a ; border-radius: 5px ; padding: 25px ; width: 95%"><b>Preparations</b><br>
 
-<style>
-  body {font-family: system-ui, Arial, sans-serif; background:#f5f6fa; color:#222;
-        padding:2em; text-align:center;}
-  #search-section {margin-bottom:1.2em;}
-  input, button {padding:0.5em 0.8em; border-radius:6px; border:1px solid #ccc; font-size:1em;}
-  button {background:#8e17de; color:#fff; cursor:pointer; border:none;}
-  button:hover {background:#7310b9;}
-  #card-container {margin:2em auto; min-height:60px;}
-  #copy-box {margin-top:2em;}
-  textarea {width:90%; max-width:600px; height:180px; border-radius:8px; padding:8px; font-family:monospace;}
-  .infobox {box-shadow:0 4px 10px rgba(0,0,0,0.08); border-radius:12px;
-            overflow:hidden; display:inline-block;}
-</style>
-</head>
-<body>
-<h2>Mini Togetic's Trainer Cards Generator</h2>
 
-<div id="search-section">
-  <input id="username-input" type="text" placeholder="Enter username">
-  <button id="search-btn">Search</button>
-</div>
 
-<div id="card-container">Enter a username and click Search.</div>
-<div id="copy-box" style="display:none;">
-  <h3>Copy and send:</h3>
-  <textarea id="html-output" readonly></textarea><br>
-  <button id="copy-btn">Copy HTML</button>
-</div>
+</div><br><br>
+<div style="display: inline-block ; border: 1px solid #68a ; border-radius: 5px ; padding: 25px ; width: 95%"><b>Prompt</b><br><br>
 
-<script>
-const RAW_URL = "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card";
 
-// Prefix and suffix for the output HTML
-const PREFIX = `!htmlbox <span style="display: inline-block;height: 30px;width: 40px;image-rendering: pixelated;background:transparent url(https://play.pokemonshowdown.com/sprites/pokemonicons-sheet.png?v16) no-repeat scroll -320px -420px;"></span><b>Mini Togetic's Trainer Cards</b><br>Guess an offline Game Corner user based on their <a href="https://tinyurl.com/gc-museum">trainer card</a>!<hr><center>`;
-const SUFFIX = `</center>`;
+</div><br><br>
+<div style="display: inline-block ; border: 1px solid #68a ; border-radius: 5px ; padding: 25px ; width: 95%"><b>Click to Copy</b><br><br>
 
-// Remove non-alphanumeric characters and lowercase
-function cleanUsername(str) {
-  return str.toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
-// Escape regex special characters
-function escapeRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-// Remove "Last updated" line
-function removeLastUpdated(html) {
-  return html.replace(/<b>\s*Last\s+updated:\s*<\/b>.*?<br\s*\/?>/i, "");
-}
-
-// Remove username in <strong class="searchValue">
-function removeUsernameStrong(html, username) {
-  const re = new RegExp('(<strong[^>]*class=["\']searchValue["\'][^>]*>)\\s*' + escapeRegExp(username) + '\\s*(</strong>)', 'i');
-  return html.replace(re, '$1$2');
-}
-
-// Remove quotes from width/height attributes
-function removeQuotesFromDimensions(html) {
-  return html.replace(/(width|height)=["']([^"']+)["']/gi, '$1=$2');
-}
-
-async function loadTrainerCard(usernameInput) {
-  const container = document.getElementById("card-container");
-  const copyBox = document.getElementById("copy-box");
-  const outputArea = document.getElementById("html-output");
-
-  container.innerHTML = "Loading…";
-  copyBox.style.display = "none";
-
-  if (!usernameInput) {
-    container.textContent = "Please enter a username.";
-    return;
-  }
-
-  const cleanInput = cleanUsername(usernameInput);
-
-  try {
-    const res = await fetch(RAW_URL);
-    const html = await res.text();
-    const parts = html.split(/(?=<span\s+class=["']infobox["'])/i);
-
-    let foundCard = null, matchedName = null;
-
-    for (const part of parts) {
-      const match = part.match(/<strong[^>]*class=["']searchValue["'][^>]*>(.*?)<\/strong>/i);
-      if (match) {
-        const nameText = match[1].trim();
-        if (cleanUsername(nameText) === cleanInput) {
-          foundCard = part;
-          matchedName = nameText;
-          break;
-        }
-      }
-    }
-
-    if (!foundCard) {
-      container.textContent = `No trainer card found for "${usernameInput}".`;
-      return;
-    }
-
-    let fixed = foundCard
-      .replace(/src=["']\/\//gi, 'src="https://')
-      .replace(/url\(["']\/\//gi, 'url("https://');
-
-    fixed = removeLastUpdated(fixed);
-    fixed = removeUsernameStrong(fixed, matchedName);
-    fixed = removeQuotesFromDimensions(fixed);
-
-    container.innerHTML = fixed;
-
-    const fullHtml = PREFIX + fixed.trim() + SUFFIX;
-    outputArea.value = fullHtml;
-    copyBox.style.display = "block";
-
-  } catch (err) {
-    container.textContent = "Error: " + err.message;
-  }
-}
-
-document.getElementById("search-btn").addEventListener("click", () => {
-  const username = document.getElementById("username-input").value.trim();
-  if (!username) return;
-  loadTrainerCard(username);
-});
-
-document.getElementById("username-input").addEventListener("keydown", e => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    document.getElementById("search-btn").click();
-  }
-});
-
-document.getElementById("copy-btn").addEventListener("click", () => {
-  const textarea = document.getElementById("html-output");
-  textarea.select();
-  document.execCommand("copy");
-  alert("HTML copied to clipboard!");
-});
-</script>
-</body>
-</html>
-
+<table>
+<tr><td style="width: 250px">Link</td><td><span class="copyable-item" data-copy-text="https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card">User Museum's Raw Content</span></td></tr>
+</table>
 
 </div>
 </p></details></div><br><br>
