@@ -22,6 +22,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Added part for extra copy box
+    document.getElementById("copy-btn").addEventListener("click", () => {
+        const textarea = document.getElementById("html-output");
+        textarea.select();
+        document.execCommand("copy");
+        showPopup();
+    });
+
     function showPopup() {
         copyFeedbackPopup.classList.add('show');
         setTimeout(() => {
@@ -743,13 +751,6 @@ document.getElementById("username-input").addEventListener("keydown", e => {
     e.preventDefault();
     document.getElementById("search-btn").click();
   }
-});
-
-document.getElementById("copy-btn").addEventListener("click", () => {
-  const textarea = document.getElementById("html-output");
-  textarea.select();
-  document.execCommand("copy");
-  showPopup();
 });
 </script>
 
