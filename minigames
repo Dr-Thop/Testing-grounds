@@ -638,7 +638,7 @@ button {
 <td id="card-container" style="vertical-align: middle; width:30%">Enter a username and click Search.</td>
 <td id="copy-box" style="display:none; vertical-align: middle; width:30%;">
   <textarea id="html-output" readonly style="resize: none;"></textarea><br>
-  <button id="copy-btn" class="copyable-item">Click to Copy</button>
+  <button id="copy-btn">Click to Copy</button>
 </td>
 
 <script>
@@ -749,6 +749,7 @@ document.getElementById("copy-btn").addEventListener("click", () => {
   const textarea = document.getElementById("html-output");
   textarea.select();
   document.execCommand("copy");
+  showPopup();
 });
 </script>
 
