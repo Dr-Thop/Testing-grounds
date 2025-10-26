@@ -629,19 +629,18 @@ button {
 <div class="searchValue" style="display: inline-block ; border: 1px solid #68a ; border-radius: 5px ; padding: 25px ; width: 95%"><details><summary><span style="display: inline-block;height: 30px;width: 40px;image-rendering: pixelated;background:transparent url(https://play.pokemonshowdown.com/sprites/pokemonicons-sheet.png?v16) no-repeat scroll -320px -420px"></span><strong class="searchValue">Togetic's Trainer Cards</strong>
 <br><br>Guess an offline Game Corner user based on their <a style="text-decoration:none; color: silver" href="https://tinyurl.com/gc-museum">trainer card</a>!<br><br><span style="float: right"><b>Last updated:</b> 2025-10-26</span><br></summary><p>
 
-<h2>Mini Togetic's Trainer Cards Generator</h2>
-
-<div id="search-section">
+<table>
+<tr><td id="search-section">
   <input id="username-input" type="text" placeholder="Enter username">
   <button id="search-btn">Search</button>
-</div>
+</td>
 
-<div id="card-container">Enter a username and click Search.</div>
-<div id="copy-box" style="display:none;">
+<td id="card-container">Enter a username and click Search.</td>
+<td id="copy-box" style="display:none;">
   <h3>Copy and send:</h3>
   <textarea id="html-output" readonly></textarea><br>
   <button id="copy-btn">Copy HTML</button>
-</div>
+</td>
 
 <script>
 const RAW_URL = "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card";
