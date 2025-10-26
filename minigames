@@ -752,10 +752,6 @@ document.getElementById("copy-btn").addEventListener("click", () => {
 });
 </script>
 
-<table>
-<tr><td style="width: 250px">Link</td><td><span class="copyable-item" data-copy-text="https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card">User Museum's Raw Content</span></td></tr>
-</table>
-
 </div>
 </p></details></div><br><br>
 
