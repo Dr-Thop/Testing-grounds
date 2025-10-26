@@ -637,28 +637,37 @@ button {
 <div class="searchValue" style="display: inline-block ; border: 1px solid #68a ; border-radius: 5px ; padding: 25px ; width: 95%"><details><summary><span style="display: inline-block;height: 30px;width: 40px;image-rendering: pixelated;background:transparent url(https://play.pokemonshowdown.com/sprites/pokemonicons-sheet.png?v16) no-repeat scroll -320px -420px"></span><strong class="searchValue">Togetic's Trainer Cards</strong>
 <br><br>Guess an offline Game Corner user based on their <a style="text-decoration:none; color: silver" href="https://tinyurl.com/gc-museum">trainer card</a>!<br><br><span style="float: right"><b>Last updated:</b> 2025-10-26</span><br></summary><p>
 
-<table>
+<table style="width:100%; border-collapse: collapse; text-align: center;">
   <tr>
-    <td id="search-section" style="vertical-align: middle; width:50%;">
-      <input id="username-input" type="text" placeholder="Enter username">
-      <button id="search-btn">Search</button>
-      <div id="card-container" style="vertical-align: middle;">Enter a username and click Search.</div>
+    <td id="search-section" 
+        style="vertical-align: middle; width:50%; text-align: center;">
+      <div style="display: inline-block; text-align: center;">
+        <input id="username-input" type="text" placeholder="Enter username">
+        <button id="search-btn">Search</button>
+        <div id="card-container" style="margin-top: 10px;">
+          Enter a username and click Search.
+        </div>
+      </div>
     </td>
 
-    <td id="copy-box" style="display:none; vertical-align: middle; width:50%;">
-      <textarea id="html-output" readonly
-        style="
-          width: 250px;
-          height: 100px;
-          resize: none;
-          overflow: auto;
-          font-family: monospace;
-          white-space: pre-wrap;
-        "></textarea><br>
-      <button id="copy-btn">Click to Copy</button>
+    <td id="copy-box" 
+        style="display:none; vertical-align: middle; width:50%; text-align: center;">
+      <div style="display: inline-block; text-align: center;">
+        <textarea id="html-output" readonly
+          style="
+            width: 250px;
+            height: 100px;
+            resize: none;
+            overflow: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+          "></textarea><br>
+        <button id="copy-btn">Click to Copy</button>
+      </div>
     </td>
   </tr>
 </table>
+
 
 <script>
 const RAW_URL = "https://raw.githubusercontent.com/bouquets-ps/gc-museum/refs/heads/main/trainer-card";
